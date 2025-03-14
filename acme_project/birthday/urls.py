@@ -5,5 +5,9 @@ from . import views
 app_name = 'birthday'
 
 urlpatterns = [
-    path('', views.birthday, name='create'),
+    # path('путь/', views.функция_отображения, name='имя_url')
+    path('', views.birthday_list, name='list'),  # Список всех дней рождений (URL: /birthday/)
+    path('create/', views.birthday, name='create'),  # Создание нового дня рождения (URL: /birthday/create/)
+    path('<int:pk>/edit/', views.birthday, name='edit'),  # Редактирование дня рождения с ID = pk (URL: /birthday/1/edit/)
+    path('<int:pk>/delete/', views.delete_birthday, name='delete'),  # Удаление дня рождения с ID = pk (URL: /birthday/1/delete/)
 ]
