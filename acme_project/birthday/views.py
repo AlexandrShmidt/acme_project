@@ -4,65 +4,64 @@ from .forms import BirthdayForm
 from .models import Birthday
 from .utils import calculate_birthday_countdown
 from django.core.paginator import Paginator
-from django.views.generic import ListView, CreateView, UpdateView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
+from django.views.generic.edit import FormMixin
 
 
-# Наследуем класс от встроенного ListView:
-class BirthdayCreateView(CreateView):
+class BirthdayMixin:
     model = Birthday
-    # Указываем имя формы:
+    success_url = reverse_lazy('birthday:list')  # добавляем success_url
+
+
+class BirthdayFormMixin(FormMixin):  # меняем наследование
     form_class = BirthdayForm
-    template_name = "birthday/birthday.html"
-    success_url = reverse_lazy("birthday:list")
+    template_name = 'birthday/birthday.html'
+
+
+class BirthdayCreateView(BirthdayMixin, BirthdayFormMixin, CreateView):
+    template_name = 'birthday/birthday.html'
+    form_class = BirthdayForm
+
+    def form_valid(self, form):
+        # Вызываем родительский метод для сохранения данных
+        response = super().form_valid(form)
+        # Получаем данные из формы
+        birthday_value = form.cleaned_data['birthday']
+        # Вычисляем обратный отсчет
+        birthday_countdown = calculate_birthday_countdown(birthday_value)
+        # Добавляем countdown в контекст
+        self.object.countdown = birthday_countdown
+        # Сохраняем объект
+        self.object.save()
+        return response
+
+
+class BirthdayUpdateView(BirthdayMixin, BirthdayFormMixin, UpdateView):
+    template_name = 'birthday/birthday.html'
+    form_class = BirthdayForm
+
+    def form_valid(self, form):
+        # Вызываем родительский метод для сохранения данных
+        response = super().form_valid(form)
+        # Получаем данные из формы
+        birthday_value = form.cleaned_data['birthday']
+        # Вычисляем обратный отсчет
+        birthday_countdown = calculate_birthday_countdown(birthday_value)
+        # Добавляем countdown в контекст
+        self.object.countdown = birthday_countdown
+        # Сохраняем объект
+        self.object.save()
+        return response
+
+
+class BirthdayDeleteView(BirthdayMixin, DeleteView):
+    template_name = 'birthday/birthday_confirm_delete.html'
+    success_url = reverse_lazy('birthday:list')
 
 
 class BirthdayListView(ListView):
     model = Birthday
-    ordering = 'id'
-    paginate_by = 10 
-
-
-# Добавим опциональный параметр pk.
-def birthday(request, pk=None):
-    # Если в запросе указан pk (если получен запрос на редактирование объекта):
-    if pk is not None:
-        # Получаем объект модели или выбрасываем 404 ошибку.
-        instance = get_object_or_404(Birthday, pk=pk)
-    # Если в запросе не указан pk
-    # (если получен запрос к странице создания записи):
-    else:
-        # Связывать форму с объектом не нужно, установим значение None.
-        instance = None
-    # Передаём в форму либо данные из запроса, либо None.
-    # В случае редактирования прикрепляем объект модели.
-    form = BirthdayForm(
-        request.POST or None, files=request.FILES or None, instance=instance
-    )
-    # Остальной код без изменений.
-    context = {"form": form}
-    # Сохраняем данные, полученные из формы, и отправляем ответ:
-    if form.is_valid():
-        form.save()
-        birthday_countdown = calculate_birthday_countdown(form.cleaned_data["birthday"])
-        context.update({"birthday_countdown": birthday_countdown})
-    return render(request, "birthday/birthday.html", context)
-
-
-
-
-def delete_birthday(request, pk):
-    # Получаем объект модели или выбрасываем 404 ошибку.
-    instance = get_object_or_404(Birthday, pk=pk)
-    # В форму передаём только объект модели;
-    # передавать в форму параметры запроса не нужно.
-    form = BirthdayForm(instance=instance)
-    context = {"form": form}
-    # Если был получен POST-запрос...
-    if request.method == "POST":
-        # ...удаляем объект:
-        instance.delete()
-        # ...и переадресовываем пользователя на страницу со списком записей.
-        return redirect("birthday:list")
-    # Если был получен GET-запрос — отображаем форму.
-    return render(request, "birthday/birthday.html", context)
+    template_name = 'birthday/birthday_list.html'
+    context_object_name = 'birthdays'
+    paginate_by = 4
