@@ -8,6 +8,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# AUTH_USER_MODEL = 'users.CustomUser'
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -18,6 +20,7 @@ INSTALLED_APPS = [
     'birthday.apps.BirthdayConfig',
     'pages.apps.PagesConfig',
     'django_bootstrap5',
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -83,6 +86,8 @@ USE_I18N = True
 USE_L10N = False
 
 USE_TZ = True
+
+MEDIA_URL = '/media/' 
 
 STATIC_URL = '/static/'
 

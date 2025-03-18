@@ -8,7 +8,7 @@
       <div class="col-2">  
         {% if birthday.image %}
           <!-- У объекта картинки image есть атрибут url — его и укажем в src -->
-          <img src="{{ birthday.image.url }}" height="100">
+          <img src="" height="100">
         {% endif %}
       </div>
 
@@ -16,8 +16,9 @@
       <div class="col-10">  
         <div>
           {{ birthday.first_name }} {{ birthday.last_name }} — {{ birthday.birthday }}
-        </div>      
+        </div>
         <div>
+          <a href="{% url 'birthday:detail' pk=birthday.pk %}">Подробнее</a> |  <!-- Добавлена ссылка на detail view -->
           <a href="{% url 'birthday:edit' birthday.id %}">Изменить запись</a> | <a href="{% url 'birthday:delete' birthday.id %}">Удалить запись</a>
         </div>
       </div>
@@ -29,6 +30,4 @@
   {% endfor %}
 
   {% include "includes/paginator.html" %}
-
-  
-{% endblock %} 
+{% endblock %}
